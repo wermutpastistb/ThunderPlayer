@@ -1,6 +1,7 @@
 import React from 'react';
 import {SafeAreaView, View, Image, TouchableOpacity, Text, Alert} from 'react-native';
 import {Icon} from 'native-base';
+import {connect} from 'react-redux';
 import {playerStyles} from './styles';
 import {Audio} from 'expo-av'
 
