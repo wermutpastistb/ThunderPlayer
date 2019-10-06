@@ -48,14 +48,15 @@ class PlaylistScreen extends React.Component {
             this.props.fillData(array);
             console.log(this.props.dataArray)
             this.props.changeIsLoaded(true)
+            this.loadAudio(this.props)
         })
     }
     playButton = async (props) => {
         if (props.isPlaying) {
-            //await soundObject.pauseAsync();
+            await soundObject.pauseAsync();
             props.changeIsPlaying(false)
         } else {
-            //await soundObject.playAsync();
+            await soundObject.playAsync();
             props.changeIsPlaying(true)
         }
     }
@@ -68,12 +69,12 @@ class PlaylistScreen extends React.Component {
             await soundObject.loadAsync({uri: props.dataArray[props.playID].url});
             await soundObject.playAsync();
             props.changeIsAudioLoaded(true);
-            props.changeIsPlaying(true)
+            props.changeIsPlaying(true);
+            props.changeShouldPlaying(props.playID)
         } else {
             await soundObject.loadAsync({uri: props.dataArray[props.playID].url});
-            await soundObject.playAsync();
             props.changeIsAudioLoaded(true);
-            props.changeIsPlaying(true)
+            props.changeShouldPlaying(props.playID)
         }
     }
     upPlayer() {
@@ -138,7 +139,7 @@ class PlaylistScreen extends React.Component {
                     <Text style={headerTitleStyles}>Your music</Text>
                 </Animated.View>
                 <ScrollView>
-                    {list(this.props, this.props.navigation, this.props)}
+                    {list(this.props, this.props.navigation, this.props, () => this.loadAudio(this.props))}
                 </ScrollView>
                     <Animated.View style={{backgroundColor: '#000', height: height - height / 7, position: 'absolute', bottom: this.playerX, width: width}}>
                         <Animated.View style={{backgroundColor: '#000', height: height / 10, width: width, flexDirection: 'row', opacity: this.miniPlayerOpacity}}>
@@ -194,13 +195,13 @@ class PlaylistScreen extends React.Component {
         }
     }
 }
-const list = (state, navigation, props) => {
+const list = (state, navigation, props, loadAudio) => {
     let views = [];
     let array = state.dataArray;
     if (state.isLoaded) {
         array.forEach((element, i) => {
             views.push(
-                <TouchableOpacity style={listItemStyles} key={i} onPress={() => props.changePlay(i)}>
+                <TouchableOpacity style={listItemStyles} key={i} onPress={async () => {await props.changePlay(i); await loadAudio()}}>
                     <Image source={{uri: element.image}} style={coverImageStyles}/>
                     <View style={infoContainer}>
                         <Text style={songTitleStyles}>{element.name}</Text>
@@ -223,7 +224,8 @@ const mapStateToProps = (state) => {
         isLoaded: state.isLoaded,
         playID: state.currentPlaying,
         isPlaying: state.isPlaying,
-        isAudioLoaded: state.isAudioLoaded
+        isAudioLoaded: state.isAudioLoaded,
+        shouldPlaying: state.shouldPlaying
     }
 }
 const mapDispatchToProps = (dispatch) => {
@@ -233,7 +235,8 @@ const mapDispatchToProps = (dispatch) => {
         pushData: (value) => dispatch({type: 'pushData', value: value}),
         changePlay: (value) => dispatch({type: 'changeID', value: value}),
         changeIsPlaying: (value) => dispatch({type: 'changeIsPlaying', value: value}),
-        changeIsAudioLoaded: (value) => dispatch({type: 'changeIsAudioLoaded', value: value})
+        changeIsAudioLoaded: (value) => dispatch({type: 'changeIsAudioLoaded', value: value}),
+        changeShouldPlaying: (value) => dispatch({type: 'changeShouldPlaying', value: value})
     }
 }
 
