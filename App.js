@@ -10,23 +10,51 @@ import playerScreen from './src/playerScreen'
 const initState = {
   isLoaded: false,
   isPlaying: false, 
-  dataArray: []
+  dataArray: [],
+  currentPlaying: 0,
+  isAudioLoaded: false
 }
 const reducer = (state = initState, action) => {
   switch(action.type){
      case 'fillData':
        return {
          dataArray: action.value,
-         isLoaded: state.isLoaded
+         isLoaded: state.isLoaded,
+         currentPlaying: state.currentPlaying,
+         isPlaying: state.isPlaying,
+         isAudioLoaded: state.isAudioLoaded
        }
      case 'changeIsLoaded':
        return {
          isLoaded: action.value,
-         dataArray: state.dataArray
+         dataArray: state.dataArray,
+         currentPlaying: state.currentPlaying,
+         isPlaying: state.isPlaying,
+         isAudioLoaded: state.isAudioLoaded
        }
-     case 'pushData':
+     case 'changeID': 
        return {
-         dataArray: [...state.dataArray, action.value]
+         isLoaded: state.isLoaded,
+         dataArray: state.dataArray,
+         currentPlaying: action.value,
+         isPlaying: state.isPlaying,
+         isAudioLoaded: state.isAudioLoaded
+       }
+     case 'changeIsPlaying':
+       return {
+         isLoaded: state.isLoaded,
+         dataArray: state.dataArray,
+         currentPlaying: state.currentPlaying,
+         isPlaying: action.value,
+         isAudioLoaded: state.isAudioLoaded
+       }
+     case 'changeIsAudioLoaded':
+       return {
+        isLoaded: state.isLoaded,
+        dataArray: state.dataArray,
+        currentPlaying: state.currentPlaying,
+        isPlaying: state.isPlaying,
+        isAudioLoaded: action.value
        }
     default:
       return state;
