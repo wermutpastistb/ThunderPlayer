@@ -77,6 +77,24 @@ class PlaylistScreen extends React.Component {
             props.changeShouldPlaying(props.playID)
         }
     }
+    forwardAudio = async () => {
+        if (this.props.playID + 1 >= this.props.dataArray.length) {
+            await this.props.changePlay(0);
+            await this.loadAudio(this.props);
+        } else {
+            await this.props.changePlay(this.props.playID + 1);
+            await this.loadAudio(this.props);
+        }
+    }
+    backAudio = async () => {
+        if (this.props.playID - 1 <= 0) {
+            await this.props.changePlay(this.props.dataArray.length);
+            await this.loadAudio(this.props);
+        } else {
+            await this.props.changePlay(this.props.playID - 1);
+            await this.loadAudio(this.props);
+        }
+    }
     upPlayer() {
         Animated.timing(this.playerX, {
             toValue: 0,
@@ -148,13 +166,13 @@ class PlaylistScreen extends React.Component {
                                 <Text style={{color: '#fff', fontSize: 24}}>{this.props.dataArray[this.props.playID].name}</Text>
                                 <Text style={{color: '#999', fontSize: 16}}>{this.props.dataArray[this.props.playID].singer}</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={{justifyContent: 'center', alignItems: 'center', height: height / 10, width: width / 8}}>
+                            <TouchableOpacity style={{justifyContent: 'center', alignItems: 'center', height: height / 10, width: width / 8}} onPress={() => this.backAudio(this.props)}>
                                 <Icon name='skip-back' type='Feather' style={{fontSize: 28, color: '#fff'}}/>
                             </TouchableOpacity>
                             <TouchableOpacity style={{justifyContent: 'center', alignItems: 'center', height: height / 10, width: width / 8}} onPress={() => this.playButton(this.props)}>
                                 <Icon name={this.props.isPlaying ? 'pause' : 'play'} type='Feather' style={{fontSize: 28, color: '#fff'}}/>
                             </TouchableOpacity>
-                            <TouchableOpacity style={{justifyContent: 'center', alignItems: 'center', height: height / 10, width: width / 8}}>
+                            <TouchableOpacity style={{justifyContent: 'center', alignItems: 'center', height: height / 10, width: width / 8}} onPress={() => this.forwardAudio(this.props)}>
                                 <Icon name='skip-forward' type='Feather' style={{fontSize: 28, color: '#fff'}}/>
                             </TouchableOpacity>
                         </Animated.View>
@@ -171,13 +189,13 @@ class PlaylistScreen extends React.Component {
                             <Text style={{color: '#fa57c1'}}>{this.props.dataArray[this.props.playID].album}</Text>
                         </View>
                         <View style={controlStyles}>
-                            <TouchableOpacity style={ButtonStyles}>
+                            <TouchableOpacity style={ButtonStyles} onPress={() => this.backAudio(this.props)}>
                                 <Icon name='skip-back' type='Feather' style={{...iconStyles, fontSize: 46}}/>
                             </TouchableOpacity>
                             <TouchableOpacity style={ButtonStyles} onPress={() => this.playButton(this.props)}>
                                 <Icon name={this.props.isPlaying ? 'pause' : 'play'} type='Feather' style={{...iconStyles, fontSize: 60}}/>
                             </TouchableOpacity>
-                            <TouchableOpacity style={ButtonStyles}>
+                            <TouchableOpacity style={ButtonStyles} onPress={() => this.forwardAudio(this.props)}>
                                 <Icon name='skip-forward' type='Feather' style={{...iconStyles, fontSize: 46}}/>
                             </TouchableOpacity>
                         </View>
@@ -207,6 +225,10 @@ const list = (state, navigation, props, loadAudio) => {
                         <Text style={songTitleStyles}>{element.name}</Text>
                         <Text style={songSingerStyles}>{element.singer}</Text>
                     </View>
+                    <View style={{flex: 1}}/>
+                     <View style={{justifyContent: 'center', alignItems: 'center', width: width / 8, height: height / 12}}>
+                        <Icon name='music' type='Feather' style={{color: '#fa57c1', fontSize: 30, opacity: props.playID === i ? 1 : 0}}/>
+                     </View>
                 </TouchableOpacity>
             )
         })
