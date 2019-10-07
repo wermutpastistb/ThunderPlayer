@@ -17,7 +17,7 @@ const {height, width} = Dimensions.get('screen');
 
 import * as firebase from 'firebase';
 import 'firebase/firestore';
-import {firebaseConfig} from './constants'
+import {firebaseConfig} from './imp/constants'
 firebase.initializeApp(firebaseConfig);
 let db = firebase.firestore();
 
@@ -28,10 +28,6 @@ const soundObject = new Audio.Sound();
 class PlaylistScreen extends React.Component {
     constructor(){
         super();
-        this.state = {
-            dataArray: [],
-            isLoaded: false
-        }
         this.playerX = new Animated.Value(-height + (height / 10) + height / 7);
         this.headerOpacity = new Animated.Value(1);
         this.miniPlayerOpacity = new Animated.Value(1);
@@ -88,7 +84,7 @@ class PlaylistScreen extends React.Component {
     }
     backAudio = async () => {
         if (this.props.playID - 1 <= 0) {
-            await this.props.changePlay(this.props.dataArray.length);
+            await this.props.changePlay(this.props.dataArray.length - 1);
             await this.loadAudio(this.props);
         } else {
             await this.props.changePlay(this.props.playID - 1);
