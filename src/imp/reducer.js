@@ -4,7 +4,8 @@ const initState = {
     dataArray: [],
     shouldPlaying: 0,
     isAudioLoaded: false,
-    currentPlaying: 0
+    currentPlaying: 0,
+    currentTab: 'songs'
   }
  export default reducer = (state = initState, action) => {
     switch(action.type){
@@ -15,7 +16,8 @@ const initState = {
            currentPlaying: state.currentPlaying,
            isPlaying: state.isPlaying,
            isAudioLoaded: state.isAudioLoaded,
-           shouldPlaying: state.shouldPlaying
+           shouldPlaying: state.shouldPlaying,
+           currentTab: state.currentTab
          }
        case 'changeIsLoaded':
          return {
@@ -24,7 +26,8 @@ const initState = {
            currentPlaying: state.currentPlaying,
            isPlaying: state.isPlaying,
            isAudioLoaded: state.isAudioLoaded,
-           shouldPlaying: state.shouldPlaying
+           shouldPlaying: state.shouldPlaying,
+           currentTab: state.currentTab
          }
        case 'changeID': 
          return {
@@ -33,7 +36,8 @@ const initState = {
            currentPlaying: action.value,
            isPlaying: state.isPlaying,
            isAudioLoaded: state.isAudioLoaded,
-           shouldPlaying: state.shouldPlaying
+           shouldPlaying: state.shouldPlaying,
+           currentTab: state.currentTab
          }
        case 'changeIsPlaying':
          return {
@@ -42,7 +46,8 @@ const initState = {
            currentPlaying: state.currentPlaying,
            isPlaying: action.value,
            isAudioLoaded: state.isAudioLoaded,
-           shouldPlaying: state.shouldPlaying
+           shouldPlaying: state.shouldPlaying,
+           currentTab: state.currentTab
          }
        case 'changeIsAudioLoaded':
          return {
@@ -51,7 +56,8 @@ const initState = {
           currentPlaying: state.currentPlaying,
           isPlaying: state.isPlaying,
           isAudioLoaded: action.value,
-          shouldPlaying: state.shouldPlaying
+          shouldPlaying: state.shouldPlaying,
+          currentTab: state.currentTab
          }
        case 'changeShouldPlaying':
          return {
@@ -60,8 +66,19 @@ const initState = {
           currentPlaying: state.currentPlaying,
           isPlaying: state.isPlaying,
           isAudioLoaded: state.isAudioLoaded,
-          shouldPlaying: action.value
+          shouldPlaying: action.value,
+          currentTab: state.currentTab
          }
+       case 'changeTab': 
+        return {
+          isLoaded: state.isLoaded,
+          dataArray: state.dataArray,
+          currentPlaying: state.currentPlaying,
+          isPlaying: state.isPlaying,
+          isAudioLoaded: state.isAudioLoaded,
+          shouldPlaying: state.shouldPlaying,
+          currentTab: action.value
+        }
       default:
         return state;
     }

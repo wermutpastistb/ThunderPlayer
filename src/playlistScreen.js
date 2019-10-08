@@ -1,19 +1,22 @@
 import React from 'react';
-import {View, Text, SafeAreaView, Platform, Dimensions, ScrollView, Image, YellowBox, TouchableOpacity, Button, StatusBar} from 'react-native';
-import {Header, Left, Right, Body, Label, Title, Icon} from 'native-base'
+import {View, Text, SafeAreaView, Platform, Dimensions, ScrollView, Image, YellowBox, TouchableOpacity, Button, StatusBar, Alert} from 'react-native';
+import {Left, Right, Body, Label, Title, Icon} from 'native-base'
 
 import {connect} from 'react-redux';
 
 import Animated, { Easing } from 'react-native-reanimated';
 
 import {Audio} from 'expo-av'
-
+import DrawerLayout from 'react-native-gesture-handler/DrawerLayout';
 
 import {playlistStyles} from './styles';
 import {playerStyles} from './styles';
 const {SafeAreaViewStyles, headerTitleStyles, listItemStyles, coverImageStyles, songTitleStyles, songSingerStyles, infoContainer} = playlistStyles;
 const {coverViewStyles, coverStyles, controlStyles, iconStyles, ButtonStyles} = playerStyles;
 const {height, width} = Dimensions.get('screen');
+
+import songList from './lists/songList'
+import Header from './components/header'
 
 import * as firebase from 'firebase';
 import 'firebase/firestore';
@@ -28,13 +31,17 @@ const soundObject = new Audio.Sound();
 class PlaylistScreen extends React.Component {
     constructor(){
         super();
-        this.playerX = new Animated.Value(-height + (height / 10) + height / 7);
+        this.playerX = new Animated.Value(-height + (height / 10) + height / 10);
         this.headerOpacity = new Animated.Value(1);
         this.miniPlayerOpacity = new Animated.Value(1);
         this.bigPlayerOpacity = new Animated.Value(0);
         this.bigPlayerX = new Animated.Value(height / 10)
     }
-    componentDidMount = async () => {
+    componentDidMount = () => {
+       this.updateData();
+    }
+
+    updateData = async () => {
         let array = [];
         db.collection('music').get()
         .then((snapshot) => {
@@ -120,7 +127,7 @@ class PlaylistScreen extends React.Component {
     }
     closePlayer() {
         Animated.timing(this.playerX, {
-            toValue: -height + (height / 10) + height / 7,
+            toValue: -height + (height / 10) + height / 10,
             duration: 100,
             easing: Easing.linear
         }).start()
@@ -145,58 +152,83 @@ class PlaylistScreen extends React.Component {
             easing: Easing.linear
         }).start();
     }
+
+    renderDrawer = () => {
+        return (
+          <View style={{backgroundColor: '#000', flex: 1}}>
+              <TouchableOpacity onPress={() => this.props.changeTab('songs')} style={{height: 75, justifyContent: 'center', alignItems: 'center', backgroundColor: this.props.currentTab == 'songs' ? '#fff1' : '#000'}}>
+                  <Text style={{color: '#fa57c1', fontSize: 28, fontWeight: '100'}}>Songs</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => this.props.changeTab('albums')} style={{height: 75, justifyContent: 'center', alignItems: 'center', backgroundColor: this.props.currentTab == 'albums' ? '#fff2' : '#000'}}>
+                  <Text style={{color: '#fa57c1', fontSize: 28, fontWeight: '100'}}>Albums</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => this.props.changeTab('radio')} style={{height: 75, justifyContent: 'center', alignItems: 'center', backgroundColor: this.props.currentTab == 'radio' ? '#fff2' : '#000'}}>
+                  <Text style={{color: '#fa57c1', fontSize: 28, fontWeight: '100'}}>Radio</Text>
+              </TouchableOpacity>
+          </View>
+        );
+      };
     render() {
         if (this.props.isLoaded) {
         return(
             <SafeAreaView style={SafeAreaViewStyles}>
-                <Animated.View style={{height: height / 10, width: width, backgroundColor: '#111', justifyContent: 'center', opacity: this.headerOpacity}}>
-                    <Text style={headerTitleStyles}>Your music</Text>
-                </Animated.View>
+            <DrawerLayout
+            ref={drawer => {
+            this.drawer = drawer;
+          }}
+          drawerWidth={200}
+          drawerPosition={DrawerLayout.positions.Left}
+          drawerType='slide'
+          drawerBackgroundColor="#ddd"
+          renderNavigationView={this.renderDrawer}>
+                
+                <Header title='Songs' leftButton={() => this.drawer.openDrawer()} leftIconName='menu' leftIconType='Feather'/>
                 <ScrollView>
-                    {list(this.props, this.props.navigation, this.props, () => this.loadAudio(this.props))}
+                    {songList(this.props, () => this.loadAudio(this.props))}
                 </ScrollView>
-                    <Animated.View style={{backgroundColor: '#000', height: height - height / 7, position: 'absolute', bottom: this.playerX, width: width}}>
+                    <Animated.View style={{backgroundColor: '#000', height: height - height / 10, position: 'absolute', bottom: this.playerX, width: width}}>
                         <Animated.View style={{backgroundColor: '#000', height: height / 10, width: width, flexDirection: 'row', opacity: this.miniPlayerOpacity}}>
                             <Image source={{uri: this.props.dataArray[this.props.playID].image}} style={{height: height / 10, width: height / 10 }}/>
                             <TouchableOpacity style={{marginLeft: 10, justifyContent: 'space-around', height: height / 10, flex: 1}} onPress={() => this.upPlayer()}>
                                 <Text style={{color: '#fff', fontSize: 24}}>{this.props.dataArray[this.props.playID].name}</Text>
                                 <Text style={{color: '#999', fontSize: 16}}>{this.props.dataArray[this.props.playID].singer}</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={{justifyContent: 'center', alignItems: 'center', height: height / 10, width: width / 8}} onPress={() => this.backAudio(this.props)}>
+                            <TouchableOpacity style={{justifyContent: 'center', alignItems: 'center', height: height / 10, width: width / 8}} onPress={() => this.backAudio()}>
                                 <Icon name='skip-back' type='Feather' style={{fontSize: 28, color: '#fff'}}/>
                             </TouchableOpacity>
                             <TouchableOpacity style={{justifyContent: 'center', alignItems: 'center', height: height / 10, width: width / 8}} onPress={() => this.playButton(this.props)}>
                                 <Icon name={this.props.isPlaying ? 'pause' : 'play'} type='Feather' style={{fontSize: 28, color: '#fff'}}/>
                             </TouchableOpacity>
-                            <TouchableOpacity style={{justifyContent: 'center', alignItems: 'center', height: height / 10, width: width / 8}} onPress={() => this.forwardAudio(this.props)}>
+                            <TouchableOpacity style={{justifyContent: 'center', alignItems: 'center', height: height / 10, width: width / 8}} onPress={() => this.forwardAudio()}>
                                 <Icon name='skip-forward' type='Feather' style={{fontSize: 28, color: '#fff'}}/>
                             </TouchableOpacity>
                         </Animated.View>
                         <Animated.View style={{top: this.bigPlayerX, position: 'absolute', opacity: this.bigPlayerOpacity}}>
-                        <TouchableOpacity style={{height: 50, width: width, justifyContent: 'center', alignItems: 'center'}} onPress={() => this.closePlayer()}>
-                            <Icon name='chevron-down' type='Feather' style={{color: '#999', fontSize: 18}}/>
-                        </TouchableOpacity>
-                        <View style={coverViewStyles}>
-                            <Image source={{uri: this.props.dataArray[this.props.playID].image}} style={coverStyles}/>
-                        </View>
-                        <View style={{justifyContent: 'center', alignItems: 'center'}}>
-                            <Text style={{color: '#fff', fontSize: 28}}>{this.props.dataArray[this.props.playID].name}</Text>
-                            <Text style={{color: '#fff8', fontSize: 20}}>{this.props.dataArray[this.props.playID].singer}</Text>
-                            <Text style={{color: '#fa57c1'}}>{this.props.dataArray[this.props.playID].album}</Text>
-                        </View>
-                        <View style={controlStyles}>
-                            <TouchableOpacity style={ButtonStyles} onPress={() => this.backAudio(this.props)}>
-                                <Icon name='skip-back' type='Feather' style={{...iconStyles, fontSize: 46}}/>
+                            <TouchableOpacity style={{width: width, justifyContent: 'center', alignItems: 'center'}} onPress={() => this.closePlayer()}>
+                                <Icon name='chevron-down' type='Feather' style={{color: '#999', fontSize: 18}}/>
                             </TouchableOpacity>
-                            <TouchableOpacity style={ButtonStyles} onPress={() => this.playButton(this.props)}>
-                                <Icon name={this.props.isPlaying ? 'pause' : 'play'} type='Feather' style={{...iconStyles, fontSize: 60}}/>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={ButtonStyles} onPress={() => this.forwardAudio(this.props)}>
-                                <Icon name='skip-forward' type='Feather' style={{...iconStyles, fontSize: 46}}/>
-                            </TouchableOpacity>
-                        </View>
+                            <View style={coverViewStyles}>
+                                <Image source={{uri: this.props.dataArray[this.props.playID].image}} style={coverStyles}/>
+                            </View>
+                            <View style={{justifyContent: 'center', alignItems: 'center'}}>
+                                <Text style={{color: '#fff', fontSize: 28}}>{this.props.dataArray[this.props.playID].name}</Text>
+                                <Text style={{color: '#fff8', fontSize: 20}}>{this.props.dataArray[this.props.playID].singer}</Text>
+                                <Text style={{color: '#fa57c1'}}>{this.props.dataArray[this.props.playID].album}</Text>
+                            </View>
+                            <View style={controlStyles}>
+                                <TouchableOpacity style={ButtonStyles} onPress={() => this.backAudio(this.props)}>
+                                    <Icon name='skip-back' type='Feather' style={{...iconStyles, fontSize: 46}}/>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={ButtonStyles} onPress={() => this.playButton(this.props)}>
+                                    <Icon name={this.props.isPlaying ? 'pause' : 'play'} type='Feather' style={{...iconStyles, fontSize: 60}}/>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={ButtonStyles} onPress={() => this.forwardAudio(this.props)}>
+                                    <Icon name='skip-forward' type='Feather' style={{...iconStyles, fontSize: 46}}/>
+                                </TouchableOpacity>
+                            </View>
                         </Animated.View>
                     </Animated.View>
+                </DrawerLayout>
             </SafeAreaView>
         )
         } else {
@@ -209,33 +241,7 @@ class PlaylistScreen extends React.Component {
         }
     }
 }
-const list = (state, navigation, props, loadAudio) => {
-    let views = [];
-    let array = state.dataArray;
-    if (state.isLoaded) {
-        array.forEach((element, i) => {
-            views.push(
-                <TouchableOpacity style={listItemStyles} key={i} onPress={async () => {await props.changePlay(i); await loadAudio()}}>
-                    <Image source={{uri: element.image}} style={coverImageStyles}/>
-                    <View style={infoContainer}>
-                        <Text style={songTitleStyles}>{element.name}</Text>
-                        <Text style={songSingerStyles}>{element.singer}</Text>
-                    </View>
-                    <View style={{flex: 1}}/>
-                     <View style={{justifyContent: 'center', alignItems: 'center', width: width / 8, height: height / 12}}>
-                        <Icon name='music' type='Feather' style={{color: '#fa57c1', fontSize: 30, opacity: props.playID === i ? 1 : 0}}/>
-                     </View>
-                </TouchableOpacity>
-            )
-        })
-        return views;
-    } else {
-        return (
-            <Text style={{color: '#fff'}}>Loading</Text>
-        )
-    }
 
-}
 const mapStateToProps = (state) => {
     return {
         dataArray: state.dataArray,
@@ -243,7 +249,8 @@ const mapStateToProps = (state) => {
         playID: state.currentPlaying,
         isPlaying: state.isPlaying,
         isAudioLoaded: state.isAudioLoaded,
-        shouldPlaying: state.shouldPlaying
+        shouldPlaying: state.shouldPlaying,
+        currentTab: state.currentTab,
     }
 }
 const mapDispatchToProps = (dispatch) => {
@@ -254,7 +261,8 @@ const mapDispatchToProps = (dispatch) => {
         changePlay: (value) => dispatch({type: 'changeID', value: value}),
         changeIsPlaying: (value) => dispatch({type: 'changeIsPlaying', value: value}),
         changeIsAudioLoaded: (value) => dispatch({type: 'changeIsAudioLoaded', value: value}),
-        changeShouldPlaying: (value) => dispatch({type: 'changeShouldPlaying', value: value})
+        changeShouldPlaying: (value) => dispatch({type: 'changeShouldPlaying', value: value}),
+        changeTab: (value) => dispatch({type: 'changeTab', value: value})
     }
 }
 
